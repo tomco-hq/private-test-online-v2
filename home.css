@@ -45,7 +45,7 @@
 }
 .anchor-nav a {
   font-family: var(--sans);
-  font-size: 0.55rem;
+  font-size: clamp(0.55rem, 0.5rem + 0.18vw, 0.6rem);
   font-weight: 400;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -213,7 +213,7 @@
 .hero-desc {
   font-family: var(--serif);
   font-style: italic;
-  font-size: 1.05rem;
+  font-size: clamp(0.95rem, 0.9rem + 0.4vw, 1.1rem);
   line-height: 1.65;
   opacity: 0.6;
 }
@@ -438,7 +438,7 @@
 .home-about-body p {
   font-family: var(--serif);
   font-style: italic;
-  font-size: 1.05rem;
+  font-size: clamp(0.95rem, 0.9rem + 0.4vw, 1.1rem);
   line-height: 1.75;
   opacity: 0.65;
   margin-bottom: 1.25rem;
@@ -468,7 +468,7 @@
 .home-contact-info p {
   font-family: var(--serif);
   font-style: italic;
-  font-size: 1.05rem;
+  font-size: clamp(0.95rem, 0.9rem + 0.4vw, 1.1rem);
   line-height: 1.75;
   opacity: 0.6;
   margin-bottom: 2rem;
@@ -553,7 +553,7 @@
 @media (min-width: 601px) {
   .site-header { padding: 1.4rem 3.5rem; }
   .anchor-nav { gap: 2.75rem; }
-  .anchor-nav a { font-size: 0.6rem; letter-spacing: 0.24em; }
+  .anchor-nav a { letter-spacing: 0.24em; }
   .home-hero { padding: 6.5rem 3.5rem 4rem; min-height: 100vh; }
   .hero-foot { grid-template-columns: 1fr 1fr 1fr; gap: 2rem; }
   .hero-scroll { justify-self: end; }

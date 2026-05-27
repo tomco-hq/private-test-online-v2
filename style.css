@@ -33,7 +33,9 @@ body {
   color: var(--ink);
   font-family: var(--sans);
   font-weight: 300;
-  font-size: 15px;
+  /* Fluid base type: scales smoothly 14px -> 15px across the viewport
+     instead of staying fixed, so everything sized in rem follows. */
+  font-size: clamp(0.875rem, 0.83rem + 0.18vw, 0.9375rem);
   line-height: 1.65;
 }
 
@@ -154,6 +156,10 @@ header h1 { margin-bottom: 0.5rem; }
   border-right: none;
   border-bottom: 1px dashed var(--rule);
   display: block;
+  /* Each card is its own query container, so the caption scales to the
+     card's width regardless of how many columns the grid currently has. */
+  container-type: inline-size;
+  container-name: card;
 }
 .product-card > a { display: block; height: 100%; }
 .product-card img {
@@ -172,7 +178,8 @@ header h1 { margin-bottom: 0.5rem; }
   color: var(--cream);
   font-family: var(--serif);
   font-style: italic;
-  font-size: 1.1rem;
+  /* cqi = 1% of the card's inline size; title grows with the card. */
+  font-size: clamp(1rem, 5.5cqi, 1.5rem);
   font-weight: 300;
   z-index: 2;
   transition: opacity 0.35s;
@@ -227,6 +234,14 @@ header h1 { margin-bottom: 0.5rem; }
   letter-spacing: 0.26em;
 }
 .product-card:hover .btn { opacity: 1; }
+
+/* Container query: wide cards (single-column mobile, roomy grids) get more
+   caption inset + a larger price; narrow 2-col cards stay tight. Placed after
+   the base caption rules so it wins at equal specificity. */
+@container card (min-width: 320px) {
+  .product-card h3 { left: 1.75rem; right: 1.75rem; bottom: 3.25rem; }
+  .product-card .price { left: 1.75rem; right: 1.75rem; font-size: 0.68rem; }
+}
 
 /* --- Product detail page ------------------------------------------ */
 .product-detail-img {

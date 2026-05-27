@@ -51,12 +51,14 @@ STATE_FILE = os.path.join(BASE_DIR, ".build_state.json")
 # across BASE_PATH changes -- the previous value is stored in .build_state.json
 # and stripped before the new value is applied, so flipping is safe.
 #
-# This is a standalone, host-agnostic clone: BASE_PATH defaults to local/root
-# and SITE_HOST is empty, so canonicals/sitemap/OG URLs are emitted
-# root-relative. To bind it to a real host, set SITE_HOST and the "domain"
-# field in products.json (host-rewriting below is skipped when SITE_HOST is "").
+# This is a standalone, host-agnostic clone. SITE_HOST is the SINGLE source of
+# truth for the site's absolute identity: it drives every canonical/sitemap/
+# robots/OG URL (the store no longer carries a "domain" field). Both knobs
+# default to empty/local, so URLs are emitted root-relative for local serving.
+# To deploy to a real host, set both env vars, e.g.:
+#   TOMCO_SITE_HOST="https://tomco-hq.github.io" TOMCO_BASE_PATH="/my-repo"
 BASE_PATH = os.environ.get("TOMCO_BASE_PATH", "").rstrip("/")
-SITE_HOST = os.environ.get("TOMCO_SITE_HOST", "")
+SITE_HOST = os.environ.get("TOMCO_SITE_HOST", "").rstrip("/")
 
 # Crawlable static pages, as root-relative paths. The 404 page is
 # intentionally excluded from the sitemap.
@@ -590,6 +592,11 @@ def main():
     store = data["store"]
     products = data["products"]
 
+    # Single source of truth for the site's absolute identity: SITE_HOST drives
+    # every generated canonical/sitemap/robots/OG URL. products.json no longer
+    # carries a "domain" field, so flipping host/local never requires editing it.
+    store["domain"] = SITE_HOST
+
     os.makedirs(PRODUCTS_DIR, exist_ok=True)
 
     for product in products:
@@ -638,6 +645,10 @@ _PATH_CARRIERS = [
     r'((?:href|src|action|data-item-url|data-item-image)=")',
     # meta http-equiv refresh: content="0; url=/foo"
     r'(content="\d+;\s*url=)',
+    # OG/Twitter meta when emitted root-relative (host-less local mode). Only
+    # fires when the value begins with "/", so text content like og:title is
+    # untouched; absolute host-prefixed values are handled by _HOST_CARRIER.
+    r'(content=")(?=/)',
     # JS: location.replace("/foo"), .href = "/foo", etc.
     r'(\.replace\(")',
 ]
@@ -717,6 +728,44 @@ def apply_base_path():
     print("base path %r -> %r (%d file(s) rewritten)" % (previous, BASE_PATH, touched))
 
 
+# Matches the absolute-URL value of a canonical / OG / Twitter tag. Captures the
+# attribute prefix, the (optional) existing scheme://host, the path, and the
+# closing quote so we can swap only the host portion.
+_META_IDENTITY_RE = re.compile(
+    r"(<(?:meta|link)\b[^>]*?"
+    r'(?:property="og:(?:url|image)"|name="twitter:(?:image|url)"|rel="canonical")'
+    r'[^>]*?(?:content|href)=")'
+    r'(?:https?://[^/"]*)?'
+    r'(/[^"]*|)'
+    r'(")'
+)
+
+
+def normalize_static_meta():
+    """Sync every canonical / OG / Twitter absolute URL to SITE_HOST.
+
+    The host lives in exactly one place (SITE_HOST) and is never duplicated in
+    source. Only the scheme://host portion is touched here; BASE_PATH is applied
+    separately and idempotently by apply_base_path(). Empty SITE_HOST yields
+    root-relative URLs (correct for local serving).
+    """
+    touched = 0
+    for path in _files_to_rewrite():
+        if not path.endswith(".html"):
+            continue
+        with open(path, encoding="utf-8") as handle:
+            original = handle.read()
+        rewritten = _META_IDENTITY_RE.sub(
+            lambda m: m.group(1) + SITE_HOST + m.group(2) + m.group(3), original
+        )
+        if rewritten != original:
+            with open(path, "w", encoding="utf-8") as handle:
+                handle.write(rewritten)
+            touched += 1
+    print("site host %r (%d file(s) normalized)" % (SITE_HOST, touched))
+
+
 if __name__ == "__main__":
     main()
+    normalize_static_meta()
     apply_base_path()

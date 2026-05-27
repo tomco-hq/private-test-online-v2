@@ -2,8 +2,7 @@
   "store": {
     "name": "TomCo",
     "tagline": "Handmade goods and original work.",
-    "currency": "usd",
-    "domain": ""
+    "currency": "usd"
   },
   "products": [
     {
