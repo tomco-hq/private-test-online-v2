@@ -45,13 +45,18 @@ STATE_FILE = os.path.join(BASE_DIR, ".build_state.json")
 # rewrite those paths in-place after the rest of the build runs.
 #
 #   BASE_PATH = ""                       -> local preview + user-site deploy
-#   BASE_PATH = "/private-test-online"   -> project-site deploy
+#   BASE_PATH = "/some-project"          -> project-site deploy under a subpath
 #
 # Override per-run with the TOMCO_BASE_PATH env var. Rewriting is idempotent
 # across BASE_PATH changes -- the previous value is stored in .build_state.json
 # and stripped before the new value is applied, so flipping is safe.
-BASE_PATH = os.environ.get("TOMCO_BASE_PATH", "/private-test-online").rstrip("/")
-SITE_HOST = "https://tomco-hq.github.io"
+#
+# This is a standalone, host-agnostic clone: BASE_PATH defaults to local/root
+# and SITE_HOST is empty, so canonicals/sitemap/OG URLs are emitted
+# root-relative. To bind it to a real host, set SITE_HOST and the "domain"
+# field in products.json (host-rewriting below is skipped when SITE_HOST is "").
+BASE_PATH = os.environ.get("TOMCO_BASE_PATH", "").rstrip("/")
+SITE_HOST = os.environ.get("TOMCO_SITE_HOST", "")
 
 # Crawlable static pages, as root-relative paths. The 404 page is
 # intentionally excluded from the sitemap.
@@ -646,7 +651,8 @@ def _strip_prefix(text, prefix):
     esc = re.escape(prefix)
     for carrier in _PATH_CARRIERS:
         text = re.sub(carrier + esc + r"(/|\"|#)", r"\1\2", text)
-    text = re.sub(_HOST_CARRIER + esc + r"(/|\"|<|'|\s|$)", SITE_HOST + r"\1", text)
+    if SITE_HOST:
+        text = re.sub(_HOST_CARRIER + esc + r"(/|\"|<|'|\s|$)", SITE_HOST + r"\1", text)
     return text
 
 
@@ -662,11 +668,12 @@ def _apply_prefix(text, prefix):
             r"\1" + prefix + r"\2",
             text,
         )
-    text = re.sub(
-        _HOST_CARRIER + r"(/(?!" + esc + r"/)(?:[^\"'<\s]*))",
-        SITE_HOST + prefix + r"\1",
-        text,
-    )
+    if SITE_HOST:
+        text = re.sub(
+            _HOST_CARRIER + r"(/(?!" + esc + r"/)(?:[^\"'<\s]*))",
+            SITE_HOST + prefix + r"\1",
+            text,
+        )
     return text
 
 
