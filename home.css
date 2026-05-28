@@ -63,6 +63,13 @@
   cursor: pointer;
 }
 .cart-link:hover { opacity: 1; }
+/* Cart is a direct header child (not inside the collapsible nav) so it stays
+   reachable in one tap on mobile. On mobile, push it to the right beside the
+   hamburger; on desktop, let the header's space-between handle placement. */
+.site-header > .cart-link { margin-left: auto; margin-right: 1rem; }
+@media (min-width: 601px) {
+  .site-header > .cart-link { margin-left: 0; margin-right: 0; }
+}
 
 /* --- Tap targets (touch only) -------------------------------------- */
 /* Match style.css: guarantee ~44px touch targets for the header cart

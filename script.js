@@ -273,17 +273,30 @@ window.SnipcartSettings = {
 
     var bigImg = box.querySelector("img");
     var closeBtn = box.querySelector(".lightbox-close");
+    var lastFocus = null;
 
     function open() {
       bigImg.src = img.currentSrc || img.src;
       bigImg.alt = img.alt || "";
+      lastFocus = document.activeElement;
       box.classList.add("is-open");
       box.setAttribute("aria-hidden", "false");
+      closeBtn.focus();
     }
     function close() {
       box.classList.remove("is-open");
       box.setAttribute("aria-hidden", "true");
+      if (lastFocus && lastFocus.focus) lastFocus.focus();
     }
+
+    // Focus trap: the close button is the only focusable control, so keep
+    // Tab/Shift+Tab pinned to it while the dialog is open.
+    box.addEventListener("keydown", function (e) {
+      if (e.key === "Tab" && box.classList.contains("is-open")) {
+        e.preventDefault();
+        closeBtn.focus();
+      }
+    });
 
     img.setAttribute("role", "button");
     img.setAttribute("tabindex", "0");
