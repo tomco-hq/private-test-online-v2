@@ -16,7 +16,8 @@
 </head>
 <body>
   <main class="container">
-    <nav class="nav">
+    <nav class="nav" id="primary-nav">
+      <button type="button" class="nav-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="primary-nav"><span></span><span></span><span></span></button>
       <a href="/private-test-online-v2/">Home</a>
       <a href="/private-test-online-v2/shop.html" aria-current="page">Shop</a>
       <a href="/private-test-online-v2/gallery.html">Gallery</a>
@@ -32,6 +33,14 @@
     <section class="product-detail">
       <img class="product-detail-img" src="/private-test-online-v2/assets/img/products/sunrise-print.jpg" alt="Sunrise Print" />
       <p>Limited edition of 50, numbered and signed. Hand-pulled on heavyweight archival stock with pigment inks rated 70+ years. Ships flat and frame-ready.</p>
+      <div class="qty-selector">
+        <label for="qty-input">Quantity</label>
+        <span class="qty-group">
+          <button type="button" class="qty-step" aria-label="Decrease quantity" data-qty="-1">&minus;</button>
+          <input id="qty-input" type="number" inputmode="numeric" min="1" max="99" value="1" />
+          <button type="button" class="qty-step" aria-label="Increase quantity" data-qty="1">+</button>
+        </span>
+      </div>
       <button class="btn snipcart-add-item"
         data-item-id="print-001"
         data-item-name="Sunrise Print"
@@ -52,6 +61,21 @@
       <p>&copy; <span id="year"></span> TomCo</p>
     </footer>
   </main>
+  <div class="product-sticky-cta" aria-hidden="true">
+    <div class="sticky-meta">
+      <span class="sticky-name">Sunrise Print</span>
+      <span class="sticky-price">$250.00</span>
+    </div>
+    <button class="btn snipcart-add-item"
+        data-item-id="print-001"
+        data-item-name="Sunrise Print"
+        data-item-price="250.00"
+        data-item-url="/private-test-online-v2/products/sunrise-print.html"
+        data-item-image="/private-test-online-v2/assets/img/products/sunrise-print.jpg"
+        data-item-description="Limited edition of 50, numbered and signed. Hand-pulled on heavyweight archival stock with pigment inks rated 70+ years. Ships flat and frame-ready.">
+        Add to cart
+      </button>
+  </div>
   <script src="/private-test-online-v2/script.js"></script>
 </body>
 </html>

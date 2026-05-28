@@ -99,7 +99,12 @@ OFFER_PRODUCT_ID = "print-001"
 
 
 def nav(active):
-    """Return the shared navigation bar, marking ``active`` as current."""
+    """Return the shared navigation bar, marking ``active`` as current.
+
+    The hamburger toggle is rendered server-side (not injected by JS) so it
+    is present at first paint with no layout shift. script.js only attaches
+    click/keyboard handlers to it.
+    """
     links = [
         ("/", "Home"),
         ("/shop.html", "Shop"),
@@ -108,6 +113,11 @@ def nav(active):
         ("/learn-more.html", "Learn More"),
         ("/#contact", "Contact"),
     ]
+    toggle = (
+        '      <button type="button" class="nav-toggle" aria-label="Toggle menu"'
+        ' aria-expanded="false" aria-controls="primary-nav">'
+        "<span></span><span></span><span></span></button>"
+    )
     items = []
     for href, label in links:
         current = ' aria-current="page"' if label == active else ""
@@ -116,7 +126,8 @@ def nav(active):
         '      <a href="#" class="snipcart-checkout cart-link">'
         'Cart (<span class="snipcart-items-count">0</span>)</a>'
     )
-    return '    <nav class="nav">\n%s\n%s\n    </nav>' % (
+    return '    <nav class="nav" id="primary-nav">\n%s\n%s\n%s\n    </nav>' % (
+        toggle,
         "\n".join(items),
         cart,
     )
@@ -205,6 +216,48 @@ def product_card(product):
     )
 
 
+def qty_selector():
+    """Return the quantity stepper markup shown before the Add-to-cart button.
+
+    Server-rendered so it is visible at first paint. script.js wires up
+    +/- buttons and syncs the value to every .snipcart-add-item on the page
+    via the data-item-quantity attribute (read by Snipcart on click).
+    """
+    return (
+        '      <div class="qty-selector">\n'
+        '        <label for="qty-input">Quantity</label>\n'
+        '        <span class="qty-group">\n'
+        '          <button type="button" class="qty-step" aria-label="Decrease quantity" data-qty="-1">&minus;</button>\n'
+        '          <input id="qty-input" type="number" inputmode="numeric" min="1" max="99" value="1" />\n'
+        '          <button type="button" class="qty-step" aria-label="Increase quantity" data-qty="1">+</button>\n'
+        "        </span>\n"
+        "      </div>"
+    )
+
+
+def sticky_cta_bar(product, item_url):
+    """Return the fixed bottom Add-to-cart bar markup for product pages.
+
+    Renders with .product-sticky-cta hidden by default; script.js toggles
+    .is-visible via IntersectionObserver when the in-page button leaves
+    the viewport. The bar's Snipcart button is a server-rendered duplicate
+    of the in-page one (same data-item-* attrs), not a JS clone.
+    """
+    return (
+        '  <div class="product-sticky-cta" aria-hidden="true">\n'
+        '    <div class="sticky-meta">\n'
+        '      <span class="sticky-name">{name}</span>\n'
+        '      <span class="sticky-price">{price}</span>\n'
+        "    </div>\n"
+        "    {button}\n"
+        "  </div>"
+    ).format(
+        name=product["name"],
+        price=money(product["price"]),
+        button=buy_button(product, item_url),
+    )
+
+
 def render_product_page(product, store):
     """Return the full HTML for a single product detail page."""
     canonical = "%s/products/%s.html" % (store["domain"], product["slug"])
@@ -224,6 +277,7 @@ def render_product_page(product, store):
     <section class="product-detail">
       <img class="product-detail-img" src="/{image}" alt="{name}" />
       <p>{description}</p>
+{qty}
       {button}
     </section>
     <footer>
@@ -236,6 +290,7 @@ def render_product_page(product, store):
       <p>&copy; <span id="year"></span> {store_name}</p>
     </footer>
   </main>
+{sticky}
 {footer}
 </body>
 </html>
@@ -250,7 +305,9 @@ def render_product_page(product, store):
         price=money(product["price"]),
         image=product["image"],
         description=product["description"],
+        qty=qty_selector(),
         button=buy_button(product, item_url),
+        sticky=sticky_cta_bar(product, item_url),
         store_name=store["name"],
         footer=snipcart_footer(),
     )
@@ -272,9 +329,26 @@ def render_shop_page(products, store):
       <h1>Shop</h1>
       <p class="tagline">{tagline}</p>
     </header>
+    <form class="shop-controls" role="search" aria-label="Shop filters" onsubmit="return false">
+      <div class="field">
+        <label for="shop-search">Search</label>
+        <input id="shop-search" type="search" placeholder="Search products" autocomplete="off" />
+      </div>
+      <div class="field">
+        <label for="shop-sort">Sort</label>
+        <select id="shop-sort">
+          <option value="default">Featured</option>
+          <option value="price-asc">Price: low to high</option>
+          <option value="price-desc">Price: high to low</option>
+          <option value="name">Name A&ndash;Z</option>
+        </select>
+      </div>
+      <span class="count" data-shop-count aria-live="polite"></span>
+    </form>
     <section class="product-grid">
 {cards}
     </section>
+    <p class="shop-empty" hidden>No products match.</p>
     <footer>
       <p class="footer-links">
         <a href="/privacy.html">Privacy</a> &middot;

@@ -16,7 +16,8 @@
 </head>
 <body>
   <main class="container">
-    <nav class="nav">
+    <nav class="nav" id="primary-nav">
+      <button type="button" class="nav-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="primary-nav"><span></span><span></span><span></span></button>
       <a href="/private-test-online-v2/">Home</a>
       <a href="/private-test-online-v2/shop.html" aria-current="page">Shop</a>
       <a href="/private-test-online-v2/gallery.html">Gallery</a>
@@ -29,6 +30,22 @@
       <h1>Shop</h1>
       <p class="tagline">Handmade goods and original work.</p>
     </header>
+    <form class="shop-controls" role="search" aria-label="Shop filters" onsubmit="return false">
+      <div class="field">
+        <label for="shop-search">Search</label>
+        <input id="shop-search" type="search" placeholder="Search products" autocomplete="off" />
+      </div>
+      <div class="field">
+        <label for="shop-sort">Sort</label>
+        <select id="shop-sort">
+          <option value="default">Featured</option>
+          <option value="price-asc">Price: low to high</option>
+          <option value="price-desc">Price: high to low</option>
+          <option value="name">Name A&ndash;Z</option>
+        </select>
+      </div>
+      <span class="count" data-shop-count aria-live="polite"></span>
+    </form>
     <section class="product-grid">
       <article class="product-card">
         <a href="/private-test-online-v2/products/sunrise-print.html">
@@ -271,6 +288,7 @@
       </button>
       </article>
     </section>
+    <p class="shop-empty" hidden>No products match.</p>
     <footer>
       <p class="footer-links">
         <a href="/private-test-online-v2/privacy.html">Privacy</a> &middot;

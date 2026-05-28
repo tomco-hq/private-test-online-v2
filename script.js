@@ -1,9 +1,8 @@
-// Site-wide script.
+// Site-wide script (mobile-first build).
 //
-// Single source of truth for Snipcart: the public API key, version, and
-// load behavior are configured here ONCE. No HTML page hardcodes the key.
-// The loader below injects Snipcart's CSS + JS on first user interaction,
-// so pages stay fast until a visitor moves toward the cart.
+// Behavior only: all visible UI is server-rendered by build.py and the
+// hand-built HTML pages. This file wires event handlers to existing nodes.
+// The only DOM this file creates is the lightbox overlay (modal pattern).
 
 // --- Footer year ----------------------------------------------------------
 
@@ -13,7 +12,7 @@ if (yearEl) {
 }
 
 // --- Snipcart (modern v3.4+ install) -------------------------------------
-
+//
 // Replace publicApiKey with your real key from the Snipcart dashboard:
 // Store management > API keys.
 window.SnipcartSettings = {
@@ -22,8 +21,6 @@ window.SnipcartSettings = {
   version: "3.7.1",
 };
 
-// Official Snipcart loader. Creates the #snipcart container and injects the
-// theme CSS + JS automatically — no per-page Snipcart markup required.
 (() => {
   var c, d;
   (d = (c = window.SnipcartSettings).version) != null || (c.version = "3.0");
@@ -93,30 +90,16 @@ window.SnipcartSettings = {
   }
 })();
 
-// --- Mobile drawer nav ----------------------------------------------------
-//
-// Progressive enhancement: inject a hamburger toggle so the nav collapses
-// into a drawer on narrow screens. No per-page markup is required and the
-// markup is untouched, so v1/v2 stay identical for the CSS A/B — only CSS
-// decides WHEN the toggle shows (v1 max-width, v2 min-width).
+// --- Drawer nav (behavior only; toggle is server-rendered) ---------------
 (function () {
-  function setupDrawer(container, menu, placeToggleFirst) {
-    if (!container || !menu || container.querySelector(".nav-toggle")) return;
-    var btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "nav-toggle";
-    btn.setAttribute("aria-label", "Toggle menu");
-    btn.setAttribute("aria-expanded", "false");
-    btn.innerHTML = "<span></span><span></span><span></span>";
-    if (placeToggleFirst) container.insertBefore(btn, container.firstChild);
-    else container.appendChild(btn);
-
+  function wireDrawer(container, menu, toggle) {
+    if (!container || !menu || !toggle) return;
     function setOpen(open) {
       menu.classList.toggle("is-open", open);
-      btn.classList.toggle("is-open", open);
-      btn.setAttribute("aria-expanded", String(open));
+      toggle.classList.toggle("is-open", open);
+      toggle.setAttribute("aria-expanded", String(open));
     }
-    btn.addEventListener("click", function (e) {
+    toggle.addEventListener("click", function (e) {
       e.stopPropagation();
       setOpen(!menu.classList.contains("is-open"));
     });
@@ -132,55 +115,29 @@ window.SnipcartSettings = {
   }
 
   document.addEventListener("DOMContentLoaded", function () {
-    // Inner pages: the .nav bar is its own container + menu.
+    // Inner pages: the .nav is both container and menu; its first child is
+    // the server-rendered .nav-toggle button.
     var inner = document.querySelector(".nav");
-    if (inner) setupDrawer(inner, inner, true);
+    if (inner) wireDrawer(inner, inner, inner.querySelector(".nav-toggle"));
     // Home: toggle lives in .site-header; the .anchor-nav is the drawer.
     var header = document.querySelector(".site-header");
     var anchor = header && header.querySelector(".anchor-nav");
-    if (header && anchor) setupDrawer(header, anchor, false);
+    var headerToggle = header && header.querySelector(".nav-toggle");
+    if (header && anchor && headerToggle) wireDrawer(header, anchor, headerToggle);
   });
 })();
 
 // --- Sticky add-to-cart bar (product detail pages) -----------------------
 //
-// Progressive enhancement: on a product page, mirror the in-page "Add to
-// cart" button into a fixed bottom bar that slides up once the real button
-// scrolls out of view. JS-injected with no markup change, so v1/v2 stay
-// identical for the CSS A/B; CSS only styles the bar (shared, identical).
+// The bar markup is rendered by build.py (.product-sticky-cta). This module
+// just toggles .is-visible via IntersectionObserver on the in-page button.
 (function () {
   document.addEventListener("DOMContentLoaded", function () {
     var detail = document.querySelector(".product-detail");
-    if (!detail) return;
+    var bar = document.querySelector(".product-sticky-cta");
+    if (!detail || !bar) return;
     var addBtn = detail.querySelector(".snipcart-add-item");
     if (!addBtn) return;
-
-    var nameEl = document.querySelector("header h1");
-    var priceEl = document.querySelector("header .tagline");
-
-    var bar = document.createElement("div");
-    bar.className = "product-sticky-cta";
-    bar.setAttribute("aria-hidden", "true");
-
-    var meta = document.createElement("div");
-    meta.className = "sticky-meta";
-    meta.innerHTML =
-      '<span class="sticky-name"></span><span class="sticky-price"></span>';
-    meta.querySelector(".sticky-name").textContent = nameEl
-      ? nameEl.textContent.trim()
-      : "";
-    meta.querySelector(".sticky-price").textContent = priceEl
-      ? priceEl.textContent.trim()
-      : "";
-
-    // Clone the Snipcart button so it carries identical data-item-* attrs;
-    // Snipcart binds by class, so the clone adds to cart like the original.
-    var clone = addBtn.cloneNode(true);
-    clone.removeAttribute("id");
-
-    bar.appendChild(meta);
-    bar.appendChild(clone);
-    document.body.appendChild(bar);
 
     function show(visible) {
       bar.classList.toggle("is-visible", visible);
@@ -190,7 +147,6 @@ window.SnipcartSettings = {
     if ("IntersectionObserver" in window) {
       var io = new IntersectionObserver(
         function (entries) {
-          // Show the bar only while the real button is off-screen.
           show(!entries[0].isIntersecting);
         },
         { rootMargin: "0px 0px -10% 0px" },
@@ -200,16 +156,15 @@ window.SnipcartSettings = {
   });
 })();
 
-// --- Shop controls: search + sort (shop page only) -----------------------
+// --- Shop controls: search + sort (shop.html) ---------------------------
 //
-// Inject a search box + sort dropdown above the product grid on inner pages
-// (shop.html). Skipped on the home page because that grid is the .site-header
-// home layout, not the shop catalog. JS-injected, no markup change.
+// Controls and empty-state markup are rendered by build.py. This module
+// reads the values, sorts/filters the product cards, and updates the count.
 (function () {
   document.addEventListener("DOMContentLoaded", function () {
-    var nav = document.querySelector(".nav"); // inner-page sentinel (home uses .site-header)
+    var controls = document.querySelector(".shop-controls");
     var grid = document.querySelector(".product-grid");
-    if (!nav || !grid) return;
+    if (!controls || !grid) return;
 
     var cards = Array.prototype.slice.call(
       grid.querySelectorAll(".product-card"),
@@ -229,34 +184,10 @@ window.SnipcartSettings = {
       };
     });
 
-    var controls = document.createElement("div");
-    controls.className = "shop-controls";
-    controls.innerHTML =
-      '<div class="field">' +
-      '<label for="shop-search">Search</label>' +
-      '<input id="shop-search" type="search" placeholder="Search products" autocomplete="off" />' +
-      "</div>" +
-      '<div class="field">' +
-      '<label for="shop-sort">Sort</label>' +
-      '<select id="shop-sort">' +
-      '<option value="default">Featured</option>' +
-      '<option value="price-asc">Price: low to high</option>' +
-      '<option value="price-desc">Price: high to low</option>' +
-      '<option value="name">Name A&ndash;Z</option>' +
-      "</select>" +
-      "</div>" +
-      '<span class="count" data-shop-count></span>';
-    grid.parentNode.insertBefore(controls, grid);
-
-    var empty = document.createElement("p");
-    empty.className = "shop-empty";
-    empty.hidden = true;
-    empty.textContent = "No products match.";
-    grid.parentNode.insertBefore(empty, grid.nextSibling);
-
     var searchEl = controls.querySelector("#shop-search");
     var sortEl = controls.querySelector("#shop-sort");
     var countEl = controls.querySelector("[data-shop-count]");
+    var empty = document.querySelector(".shop-empty");
 
     function apply() {
       var q = searchEl.value.trim().toLowerCase();
@@ -269,7 +200,6 @@ window.SnipcartSettings = {
       else if (s === "name")
         ordered.sort(function (a, b) { return a.name.localeCompare(b.name); });
 
-      // Re-attach in the new order (appendChild on existing nodes reorders).
       ordered.forEach(function (it) { grid.appendChild(it.card); });
 
       var visible = 0;
@@ -278,8 +208,8 @@ window.SnipcartSettings = {
         it.card.classList.toggle("is-hidden", !match);
         if (match) visible++;
       });
-      countEl.textContent = visible + " of " + items.length;
-      empty.hidden = visible !== 0;
+      if (countEl) countEl.textContent = visible + " of " + items.length;
+      if (empty) empty.hidden = visible !== 0;
     }
 
     searchEl.addEventListener("input", apply);
@@ -288,35 +218,21 @@ window.SnipcartSettings = {
   });
 })();
 
-// --- Quantity selector (product detail pages) ----------------------------
+// --- Quantity selector (product detail pages) ---------------------------
 //
-// Insert a stepper before the Add-to-cart button. Snipcart reads
-// data-item-quantity on click, so we sync the value to every
-// .snipcart-add-item on the page (including the sticky-bar clone).
+// The stepper markup is rendered by build.py (.qty-selector). This module
+// wires the +/- buttons and syncs data-item-quantity to every Snipcart
+// button on the page (including the sticky-bar's duplicate).
 (function () {
   document.addEventListener("DOMContentLoaded", function () {
-    var detail = document.querySelector(".product-detail");
-    if (!detail) return;
-    var addBtn = detail.querySelector(".snipcart-add-item");
-    if (!addBtn) return;
-
-    var wrap = document.createElement("div");
-    wrap.className = "qty-selector";
-    wrap.innerHTML =
-      '<label for="qty-input">Quantity</label>' +
-      '<span class="qty-group">' +
-      '<button type="button" aria-label="Decrease quantity" data-qty="-1">&minus;</button>' +
-      '<input id="qty-input" type="number" inputmode="numeric" min="1" max="99" value="1" />' +
-      '<button type="button" aria-label="Increase quantity" data-qty="1">+</button>' +
-      "</span>";
-    addBtn.parentNode.insertBefore(wrap, addBtn);
-
+    var wrap = document.querySelector(".qty-selector");
+    if (!wrap) return;
     var input = wrap.querySelector("input");
+    if (!input) return;
 
     function syncAll() {
       var v = Math.max(1, Math.min(99, parseInt(input.value, 10) || 1));
       input.value = v;
-      // Sync to every Snipcart button (including any sticky-bar clone).
       var all = document.querySelectorAll(".snipcart-add-item");
       for (var i = 0; i < all.length; i++)
         all[i].setAttribute("data-item-quantity", v);
@@ -338,9 +254,8 @@ window.SnipcartSettings = {
 
 // --- Image lightbox (product detail pages) -------------------------------
 //
-// Click/keyboard-activate the detail image to view it full-screen. Closes on
-// the close button, outside click, or Escape. Single-image gallery; multi-
-// image support would need products.json to carry an image array.
+// The lightbox is a modal overlay; per standard practice it is JS-created
+// (not in the document at rest). Click/Enter/Space the detail image to open.
 (function () {
   document.addEventListener("DOMContentLoaded", function () {
     var img = document.querySelector(".product-detail-img");
