@@ -54,6 +54,39 @@ h3 { font-size: 1.2rem; }
 a { color: var(--ink); text-decoration: none; transition: opacity 0.2s; }
 a:hover { opacity: 0.7; }
 
+/* --- Keyboard focus -------------------------------------------------- */
+/* Visible focus ring for keyboard users only (mouse clicks stay clean).
+   Applies to links, buttons, and form controls site-wide. */
+:focus-visible {
+  outline: 2px solid var(--terra);
+  outline-offset: 2px;
+  border-radius: 1px;
+}
+/* Form controls draw their own subtle underline on :focus; give keyboard
+   users the same explicit ring so the indicator isn't ambiguous. */
+.contact-form input:focus-visible,
+.contact-form textarea:focus-visible,
+.shop-controls input:focus-visible,
+.shop-controls select:focus-visible,
+.qty-selector input:focus-visible { outline: 2px solid var(--terra); outline-offset: 2px; }
+
+/* --- Skip to content ------------------------------------------------- */
+.skip-link {
+  position: absolute;
+  left: 0;
+  top: -3rem;
+  z-index: 500;
+  background: var(--ink);
+  color: var(--cream);
+  font-family: var(--sans);
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 0.7rem 1.1rem;
+  transition: top 0.2s ease;
+}
+.skip-link:focus { top: 0; opacity: 1; }
+
 /* Uppercase letterspaced micro-label used in eyebrows, captions, etc. */
 .micro {
   font-family: var(--sans);
