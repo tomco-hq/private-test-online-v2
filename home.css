@@ -89,7 +89,7 @@
 
 /* --- Mobile drawer nav (home header) ------------------------------- */
 /* Mobile-first: the anchor-nav is a dropdown panel under the fixed header,
-   toggled by the injected hamburger; it becomes an inline row at 601px. */
+   toggled by the hamburger button; it becomes an inline row at 601px. */
 .site-header > .nav-toggle { display: inline-flex; }
 .anchor-nav {
   position: absolute;

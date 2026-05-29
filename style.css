@@ -1,8 +1,10 @@
 /* style.css — base tokens, typography, and shared components for TomCo.
    Editorial palette + Fraunces (italic display) + Inter (uppercase micro).
-   home.css and offer.css build on these tokens. */
+   home.css and offer.css build on these tokens.
 
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400;1,9..144,500&family=Inter:wght@300;400;500&display=swap");
+   Fonts are loaded via <link rel="stylesheet"> in each page's <head> (with
+   preconnect) rather than an @import here, so the font request isn't chained
+   behind this stylesheet and doesn't block rendering. */
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
@@ -346,10 +348,10 @@ header h1 { margin-bottom: 0.5rem; }
   display: block;
 }
 
-/* --- Sticky add-to-cart bar (product pages, JS-injected) ----------- */
-/* script.js mirrors the in-page Add-to-cart button into this fixed bar,
-   which slides up once the real button scrolls out of view. JS-injected
-   with no markup change, so v1/v2 stay identical for the CSS A/B. */
+/* --- Sticky add-to-cart bar (product pages) ------------------------ */
+/* The bar markup is server-rendered by build.py; script.js only toggles
+   .is-visible via IntersectionObserver once the in-page button scrolls out
+   of view. (v1 injects this bar at runtime instead — see DIFFERENCES.md §6.) */
 .product-sticky-cta {
   position: fixed;
   left: 0;
@@ -501,7 +503,7 @@ footer p { margin: 0.4rem 0; }
   .product-card:nth-child(3n) { border-right: none; }
 }
 
-/* --- Shop controls: search + sort (JS-injected, shop page only) ---- */
+/* --- Shop controls: search + category + sort (shop page only) ------ */
 .shop-controls {
   display: flex;
   flex-wrap: wrap;
@@ -559,7 +561,7 @@ footer p { margin: 0.4rem 0; }
   opacity: 0.6;
 }
 
-/* --- Quantity selector (product detail page, JS-injected) ---------- */
+/* --- Quantity selector (product detail page) ----------------------- */
 .qty-selector {
   display: inline-flex;
   align-items: center;
@@ -613,7 +615,7 @@ footer p { margin: 0.4rem 0; }
   .qty-selector button { width: 2.75rem; height: 2.75rem; }
 }
 
-/* --- Image lightbox (product detail, JS-injected) ------------------ */
+/* --- Image lightbox (product detail; modal overlay is JS-created) -- */
 .product-detail-img { cursor: zoom-in; }
 .lightbox {
   position: fixed;

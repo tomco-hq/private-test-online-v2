@@ -60,6 +60,36 @@ STATE_FILE = os.path.join(BASE_DIR, ".build_state.json")
 BASE_PATH = os.environ.get("TOMCO_BASE_PATH", "").rstrip("/")
 SITE_HOST = os.environ.get("TOMCO_SITE_HOST", "").rstrip("/")
 
+# Web fonts loaded via <link> in <head> (preconnect + stylesheet) rather than
+# a render-blocking @import inside style.css. Kept identical to the URL the
+# hand-built pages use so every page shares one font request.
+FONTS_HEAD = (
+    '  <link rel="preconnect" href="https://fonts.googleapis.com" />\n'
+    '  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />\n'
+    '  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?'
+    "family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;"
+    "1,9..144,400;1,9..144,500&family=Inter:wght@300;400;500&display=swap"
+    '" />'
+)
+
+# Content-Security-Policy delivered via <meta http-equiv>. Allow-lists the
+# site's own origin plus Google Fonts and Snipcart (script/style/connect/
+# frame). 'unsafe-inline'/'unsafe-eval' are required by Snipcart's runtime.
+# NOTE: revisit frame-src/connect-src when a real payment gateway (Stripe,
+# PayPal, etc.) is wired up — each gateway adds its own domains.
+CSP = (
+    "default-src 'self'; "
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' "
+    "https://cdn.snipcart.com https://app.snipcart.com; "
+    "style-src 'self' 'unsafe-inline' "
+    "https://cdn.snipcart.com https://fonts.googleapis.com; "
+    "font-src 'self' data: https://fonts.gstatic.com https://cdn.snipcart.com; "
+    "img-src 'self' data: https:; "
+    "connect-src 'self' https://app.snipcart.com https://cdn.snipcart.com "
+    "https://payment.snipcart.com; "
+    "frame-src https://app.snipcart.com https://*.snipcart.com"
+)
+
 # Crawlable static pages, as root-relative paths. The 404 page is
 # intentionally excluded from the sitemap.
 STATIC_PAGES = [
@@ -133,22 +163,69 @@ def nav(active):
     )
 
 
-def head(title, description, canonical):
-    """Return the shared <head> block."""
+def head(title, description, canonical, image=None, extra=""):
+    """Return the shared <head> block.
+
+    ``image`` (optional) is an absolute image URL emitted as og:image /
+    twitter:image. ``extra`` (optional) is raw markup appended at the end of
+    the block — used to inject JSON-LD structured data.
+    """
+    image_tags = ""
+    if image:
+        image_tags = (
+            '\n  <meta property="og:image" content="{image}" />'
+            '\n  <meta name="twitter:image" content="{image}" />'
+        ).format(image=image)
     return """  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Content-Security-Policy" content="{csp}" />
   <title>{title}</title>
   <meta name="description" content="{description}" />
+  <link rel="canonical" href="{canonical}" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+{fonts}
   <link rel="stylesheet" href="/style.css" />
   <meta property="og:title" content="{title}" />
   <meta property="og:description" content="{description}" />
   <meta property="og:url" content="{canonical}" />
   <meta property="og:type" content="website" />
-  <meta name="twitter:card" content="summary_large_image" />""".format(
-        title=title, description=description, canonical=canonical
+  <meta name="twitter:card" content="summary_large_image" />{image_tags}{extra}""".format(
+        csp=CSP,
+        fonts=FONTS_HEAD,
+        title=title,
+        description=description,
+        canonical=canonical,
+        image_tags=image_tags,
+        extra=extra,
     )
+
+
+def product_jsonld(product, store, canonical):
+    """Return a schema.org Product JSON-LD <script> block for one product.
+
+    Emitted in <head> for rich-result eligibility. ``<`` is escaped to
+    \\u003c so the JSON can never prematurely close the script element.
+    """
+    image_url = "%s/%s" % (store["domain"], product["image"])
+    currency = store.get("currency", "usd").upper()
+    data = {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": product["name"],
+        "description": product["description"],
+        "sku": str(product["id"]),
+        "image": image_url,
+        "offers": {
+            "@type": "Offer",
+            "url": canonical,
+            "price": "%.2f" % product["price"],
+            "priceCurrency": currency,
+            "availability": "https://schema.org/InStock",
+        },
+    }
+    payload = json.dumps(data, ensure_ascii=False).replace("<", "\\u003c")
+    return '\n  <script type="application/ld+json">%s</script>' % payload
 
 
 def snipcart_footer():
@@ -200,14 +277,16 @@ def product_card(product):
     Used by both the shop grid and the homepage featured grid.
     """
     page = "/products/%s.html" % product["slug"]
-    return """      <article class="product-card">
+    category = product.get("category", "")
+    return """      <article class="product-card" data-category="{category}">
         <a href="{page}">
-          <img src="/{image}" alt="{name}" />
+          <img src="/{image}" alt="{name}" width="800" height="600" loading="lazy" decoding="async" />
           <h3>{name}</h3>
         </a>
         <p class="price">{price}</p>
         {button}
       </article>""".format(
+        category=category.replace('"', "&quot;"),
         page=page,
         image=product["image"],
         name=product["name"],
@@ -268,14 +347,15 @@ def render_product_page(product, store):
 {head}
 </head>
 <body>
-  <main class="container">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <main class="container" id="main">
 {nav}
     <header>
       <h1>{name}</h1>
       <p class="tagline">{price}</p>
     </header>
     <section class="product-detail">
-      <img class="product-detail-img" src="/{image}" alt="{name}" />
+      <img class="product-detail-img" src="/{image}" alt="{name}" width="800" height="600" decoding="async" />
       <p>{description}</p>
 {qty}
       {button}
@@ -299,6 +379,8 @@ def render_product_page(product, store):
             "%s — %s" % (product["name"], store["name"]),
             product["description"],
             canonical,
+            image="%s/%s" % (store["domain"], product["image"]),
+            extra=product_jsonld(product, store, canonical),
         ),
         nav=nav("Shop"),
         name=product["name"],
@@ -317,13 +399,34 @@ def render_shop_page(products, store):
     """Return the full HTML for the shop grid page."""
     canonical = "%s/shop.html" % store["domain"]
     cards = [product_card(product) for product in products]
+
+    # Category options, in first-appearance order, deduped.
+    categories = []
+    for product in products:
+        cat = product.get("category")
+        if cat and cat not in categories:
+            categories.append(cat)
+    cat_options = "\n".join(
+        '          <option value="%s">%s</option>' % (c, c) for c in categories
+    )
+    cat_field = (
+        '      <div class="field">\n'
+        '        <label for="shop-category">Category</label>\n'
+        '        <select id="shop-category">\n'
+        '          <option value="all">All categories</option>\n'
+        "%s\n"
+        "        </select>\n"
+        "      </div>" % cat_options
+    )
+
     return """<!doctype html>
 <html lang="en">
 <head>
 {head}
 </head>
 <body>
-  <main class="container">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <main class="container" id="main">
 {nav}
     <header>
       <h1>Shop</h1>
@@ -334,6 +437,7 @@ def render_shop_page(products, store):
         <label for="shop-search">Search</label>
         <input id="shop-search" type="search" placeholder="Search products" autocomplete="off" />
       </div>
+{cat_field}
       <div class="field">
         <label for="shop-sort">Sort</label>
         <select id="shop-sort">
@@ -366,9 +470,11 @@ def render_shop_page(products, store):
             "Shop — %s" % store["name"],
             "Browse every product from %s." % store["name"],
             canonical,
+            image="%s/og-image.png" % store["domain"],
         ),
         nav=nav("Shop"),
         tagline=store["tagline"],
+        cat_field=cat_field,
         cards="\n".join(cards),
         store_name=store["name"],
         footer=snipcart_footer(),
@@ -384,7 +490,7 @@ def render_filmstrip(products):
     for p in featured:
         items.append(
             '          <div class="hero-strip-item" data-name="%s">\n'
-            '            <a href="/products/%s.html"><img src="/%s" alt="%s" /></a>\n'
+            '            <a href="/products/%s.html"><img src="/%s" alt="%s" width="800" height="600" decoding="async" /></a>\n'
             "          </div>" % (p["name"], p["slug"], p["image"], p["name"])
         )
     return (
