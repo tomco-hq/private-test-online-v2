@@ -181,17 +181,20 @@ window.SnipcartSettings = {
         card: card,
         name: nameEl ? nameEl.textContent.trim().toLowerCase() : "",
         price: parseFloat(priceText) || 0,
+        category: card.getAttribute("data-category") || "",
       };
     });
 
     var searchEl = controls.querySelector("#shop-search");
     var sortEl = controls.querySelector("#shop-sort");
+    var categoryEl = controls.querySelector("#shop-category");
     var countEl = controls.querySelector("[data-shop-count]");
     var empty = document.querySelector(".shop-empty");
 
     function apply() {
       var q = searchEl.value.trim().toLowerCase();
       var s = sortEl.value;
+      var cat = categoryEl ? categoryEl.value : "all";
       var ordered = items.slice();
       if (s === "price-asc")
         ordered.sort(function (a, b) { return a.price - b.price; });
@@ -204,7 +207,9 @@ window.SnipcartSettings = {
 
       var visible = 0;
       ordered.forEach(function (it) {
-        var match = !q || it.name.indexOf(q) !== -1;
+        var matchText = !q || it.name.indexOf(q) !== -1;
+        var matchCat = cat === "all" || it.category === cat;
+        var match = matchText && matchCat;
         it.card.classList.toggle("is-hidden", !match);
         if (match) visible++;
       });
@@ -214,6 +219,7 @@ window.SnipcartSettings = {
 
     searchEl.addEventListener("input", apply);
     sortEl.addEventListener("change", apply);
+    if (categoryEl) categoryEl.addEventListener("change", apply);
     apply();
   });
 })();

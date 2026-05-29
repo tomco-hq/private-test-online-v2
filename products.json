@@ -11,6 +11,7 @@
       "name": "Sunrise Print",
       "price": 250.0,
       "featured": true,
+      "category": "Prints",
       "image": "assets/img/products/sunrise-print.jpg",
       "description": "Limited edition of 50, numbered and signed. Hand-pulled on heavyweight archival stock with pigment inks rated 70+ years. Ships flat and frame-ready."
     },
@@ -20,6 +21,7 @@
       "name": "Harbor Print",
       "price": 30.0,
       "featured": true,
+      "category": "Prints",
       "image": "assets/img/products/harbor-print.jpg",
       "description": "A short description of this product. Replace with real copy once the item is photographed and listed."
     },
@@ -29,6 +31,7 @@
       "name": "Meadow Print",
       "price": 25.0,
       "featured": true,
+      "category": "Prints",
       "image": "assets/img/products/meadow-print.jpg",
       "description": "A short description of this product. Replace with real copy once the item is photographed and listed."
     },
@@ -38,6 +41,7 @@
       "name": "City Lights Print",
       "price": 30.0,
       "featured": true,
+      "category": "Prints",
       "image": "assets/img/products/city-lights-print.jpg",
       "description": "A short description of this product. Replace with real copy once the item is photographed and listed."
     },
@@ -47,6 +51,7 @@
       "name": "Forest Print",
       "price": 28.0,
       "featured": true,
+      "category": "Prints",
       "image": "assets/img/products/forest-print.jpg",
       "description": "A short description of this product. Replace with real copy once the item is photographed and listed."
     },
@@ -56,6 +61,7 @@
       "name": "Desert Print",
       "price": 28.0,
       "featured": true,
+      "category": "Prints",
       "image": "assets/img/products/desert-print.jpg",
       "description": "A short description of this product. Replace with real copy once the item is photographed and listed."
     },
@@ -65,6 +71,7 @@
       "name": "Mountain Print",
       "price": 26.0,
       "featured": false,
+      "category": "Prints",
       "image": "assets/img/products/mountain-print.jpg",
       "description": "A short description of this product. Replace with real copy once the item is photographed and listed."
     },
@@ -74,6 +81,7 @@
       "name": "Coastal Print",
       "price": 27.0,
       "featured": false,
+      "category": "Prints",
       "image": "assets/img/products/coastal-print.jpg",
       "description": "A short description of this product. Replace with real copy once the item is photographed and listed."
     },
@@ -83,6 +91,7 @@
       "name": "Greeting Card Set",
       "price": 12.0,
       "featured": false,
+      "category": "Paper Goods",
       "image": "assets/img/products/greeting-card-set.jpg",
       "description": "A short description of this product. Replace with real copy once the item is photographed and listed."
     },
@@ -92,6 +101,7 @@
       "name": "Postcard Pack",
       "price": 9.0,
       "featured": false,
+      "category": "Paper Goods",
       "image": "assets/img/products/postcard-pack.jpg",
       "description": "A short description of this product. Replace with real copy once the item is photographed and listed."
     },
@@ -101,6 +111,7 @@
       "name": "Logo Sticker",
       "price": 4.0,
       "featured": false,
+      "category": "Stickers",
       "image": "assets/img/products/logo-sticker.jpg",
       "description": "A short description of this product. Replace with real copy once the item is photographed and listed."
     },
@@ -110,6 +121,7 @@
       "name": "Sticker Sheet",
       "price": 6.0,
       "featured": false,
+      "category": "Stickers",
       "image": "assets/img/products/sticker-sheet.jpg",
       "description": "A short description of this product. Replace with real copy once the item is photographed and listed."
     },
@@ -119,6 +131,7 @@
       "name": "Vinyl Sticker Pack",
       "price": 8.0,
       "featured": false,
+      "category": "Stickers",
       "image": "assets/img/products/vinyl-sticker-pack.jpg",
       "description": "A short description of this product. Replace with real copy once the item is photographed and listed."
     },
@@ -128,6 +141,7 @@
       "name": "Fridge Magnet Set",
       "price": 7.0,
       "featured": false,
+      "category": "Magnets",
       "image": "assets/img/products/fridge-magnet-set.jpg",
       "description": "A short description of this product. Replace with real copy once the item is photographed and listed."
     },
@@ -137,6 +151,7 @@
       "name": "Pocket Notebook",
       "price": 11.0,
       "featured": false,
+      "category": "Paper Goods",
       "image": "assets/img/products/pocket-notebook.jpg",
       "description": "A short description of this product. Replace with real copy once the item is photographed and listed."
     }

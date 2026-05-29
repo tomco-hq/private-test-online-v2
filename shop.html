@@ -39,6 +39,16 @@
         <input id="shop-search" type="search" placeholder="Search products" autocomplete="off" />
       </div>
       <div class="field">
+        <label for="shop-category">Category</label>
+        <select id="shop-category">
+          <option value="all">All categories</option>
+          <option value="Prints">Prints</option>
+          <option value="Paper Goods">Paper Goods</option>
+          <option value="Stickers">Stickers</option>
+          <option value="Magnets">Magnets</option>
+        </select>
+      </div>
+      <div class="field">
         <label for="shop-sort">Sort</label>
         <select id="shop-sort">
           <option value="default">Featured</option>
@@ -50,7 +60,7 @@
       <span class="count" data-shop-count aria-live="polite"></span>
     </form>
     <section class="product-grid">
-      <article class="product-card">
+      <article class="product-card" data-category="Prints">
         <a href="/private-test-online-v2/products/sunrise-print.html">
           <img src="/private-test-online-v2/assets/img/products/sunrise-print.jpg" alt="Sunrise Print" />
           <h3>Sunrise Print</h3>
@@ -66,7 +76,7 @@
         Add to cart
       </button>
       </article>
-      <article class="product-card">
+      <article class="product-card" data-category="Prints">
         <a href="/private-test-online-v2/products/harbor-print.html">
           <img src="/private-test-online-v2/assets/img/products/harbor-print.jpg" alt="Harbor Print" />
           <h3>Harbor Print</h3>
@@ -82,7 +92,7 @@
         Add to cart
       </button>
       </article>
-      <article class="product-card">
+      <article class="product-card" data-category="Prints">
         <a href="/private-test-online-v2/products/meadow-print.html">
           <img src="/private-test-online-v2/assets/img/products/meadow-print.jpg" alt="Meadow Print" />
           <h3>Meadow Print</h3>
@@ -98,7 +108,7 @@
         Add to cart
       </button>
       </article>
-      <article class="product-card">
+      <article class="product-card" data-category="Prints">
         <a href="/private-test-online-v2/products/city-lights-print.html">
           <img src="/private-test-online-v2/assets/img/products/city-lights-print.jpg" alt="City Lights Print" />
           <h3>City Lights Print</h3>
@@ -114,7 +124,7 @@
         Add to cart
       </button>
       </article>
-      <article class="product-card">
+      <article class="product-card" data-category="Prints">
         <a href="/private-test-online-v2/products/forest-print.html">
           <img src="/private-test-online-v2/assets/img/products/forest-print.jpg" alt="Forest Print" />
           <h3>Forest Print</h3>
@@ -130,7 +140,7 @@
         Add to cart
       </button>
       </article>
-      <article class="product-card">
+      <article class="product-card" data-category="Prints">
         <a href="/private-test-online-v2/products/desert-print.html">
           <img src="/private-test-online-v2/assets/img/products/desert-print.jpg" alt="Desert Print" />
           <h3>Desert Print</h3>
@@ -146,7 +156,7 @@
         Add to cart
       </button>
       </article>
-      <article class="product-card">
+      <article class="product-card" data-category="Prints">
         <a href="/private-test-online-v2/products/mountain-print.html">
           <img src="/private-test-online-v2/assets/img/products/mountain-print.jpg" alt="Mountain Print" />
           <h3>Mountain Print</h3>
@@ -162,7 +172,7 @@
         Add to cart
       </button>
       </article>
-      <article class="product-card">
+      <article class="product-card" data-category="Prints">
         <a href="/private-test-online-v2/products/coastal-print.html">
           <img src="/private-test-online-v2/assets/img/products/coastal-print.jpg" alt="Coastal Print" />
           <h3>Coastal Print</h3>
@@ -178,7 +188,7 @@
         Add to cart
       </button>
       </article>
-      <article class="product-card">
+      <article class="product-card" data-category="Paper Goods">
         <a href="/private-test-online-v2/products/greeting-card-set.html">
           <img src="/private-test-online-v2/assets/img/products/greeting-card-set.jpg" alt="Greeting Card Set" />
           <h3>Greeting Card Set</h3>
@@ -194,7 +204,7 @@
         Add to cart
       </button>
       </article>
-      <article class="product-card">
+      <article class="product-card" data-category="Paper Goods">
         <a href="/private-test-online-v2/products/postcard-pack.html">
           <img src="/private-test-online-v2/assets/img/products/postcard-pack.jpg" alt="Postcard Pack" />
           <h3>Postcard Pack</h3>
@@ -210,7 +220,7 @@
         Add to cart
       </button>
       </article>
-      <article class="product-card">
+      <article class="product-card" data-category="Stickers">
         <a href="/private-test-online-v2/products/logo-sticker.html">
           <img src="/private-test-online-v2/assets/img/products/logo-sticker.jpg" alt="Logo Sticker" />
           <h3>Logo Sticker</h3>
@@ -226,7 +236,7 @@
         Add to cart
       </button>
       </article>
-      <article class="product-card">
+      <article class="product-card" data-category="Stickers">
         <a href="/private-test-online-v2/products/sticker-sheet.html">
           <img src="/private-test-online-v2/assets/img/products/sticker-sheet.jpg" alt="Sticker Sheet" />
           <h3>Sticker Sheet</h3>
@@ -242,7 +252,7 @@
         Add to cart
       </button>
       </article>
-      <article class="product-card">
+      <article class="product-card" data-category="Stickers">
         <a href="/private-test-online-v2/products/vinyl-sticker-pack.html">
           <img src="/private-test-online-v2/assets/img/products/vinyl-sticker-pack.jpg" alt="Vinyl Sticker Pack" />
           <h3>Vinyl Sticker Pack</h3>
@@ -258,7 +268,7 @@
         Add to cart
       </button>
       </article>
-      <article class="product-card">
+      <article class="product-card" data-category="Magnets">
         <a href="/private-test-online-v2/products/fridge-magnet-set.html">
           <img src="/private-test-online-v2/assets/img/products/fridge-magnet-set.jpg" alt="Fridge Magnet Set" />
           <h3>Fridge Magnet Set</h3>
@@ -274,7 +284,7 @@
         Add to cart
       </button>
       </article>
-      <article class="product-card">
+      <article class="product-card" data-category="Paper Goods">
         <a href="/private-test-online-v2/products/pocket-notebook.html">
           <img src="/private-test-online-v2/assets/img/products/pocket-notebook.jpg" alt="Pocket Notebook" />
           <h3>Pocket Notebook</h3>
